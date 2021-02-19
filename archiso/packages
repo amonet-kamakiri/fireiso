@@ -201,3 +201,10 @@ udisks2
 udiskie
 python-json5
 lightdm
+scrypt
+python-scrypt
+python-pycryptodome
+python-wheel
+python-docopt
+python-unicorn
+python-colorama
