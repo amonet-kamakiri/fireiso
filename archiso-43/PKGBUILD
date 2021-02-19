@@ -1,0 +1,47 @@
+# Maintainer: Gerardo Exequiel Pozzi <djgera@archlinux.org>
+# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+
+pkgname=archiso
+pkgver=43
+pkgrel=1
+pkgdesc='Tools for creating Arch Linux live and install iso images'
+arch=('any')
+license=('GPL')
+url='https://projects.archlinux.org/archiso.git/'
+depends=('make' 'arch-install-scripts' 'squashfs-tools' 'libisoburn' 'dosfstools' 'lynx')
+source=("https://sources.archlinux.org/other/${pkgname}/${pkgname}-${pkgver}.tar.gz"
+        "https://sources.archlinux.org/other/${pkgname}/${pkgname}-${pkgver}.tar.gz.sig"
+        "archiso-v43-01-squashfs-options.patch"
+        "archiso-v43-02-fix-pxeboot-dhcp.patch"
+        "archiso-v43-03-fix-pxeboot-multiple-interfaces.patch"
+        "archiso-v43-04-increase-cow-spacesize.patch"
+        "archiso-v43-05-add-loadsrm.patch"
+        "archiso-v43-06-autorun-copytoram.patch")
+sha256sums=('4d2274cc5f1c48883941c3e37dfe7882632f9c455f97635aa079c1812571cb13'
+            'SKIP'
+            'b0a6f5dbb16f04da7cf9b98087e4a81ced97d874a1d7f18334e6fca32d07120c'
+            'b84eb0c9ce356223995f88222cf90fc975e1089d88cc0649275bb629a0a94de2'
+            'dc67a7414cc26736405b7ab1f3a1c743a9f47251637a47b1744be6ebd5cbcf11'
+            '7019657c12a9104d05e969ae6c74eba4554c6404d37b6096b5fcef87eb895688'
+            'd2c3ffb9bb86199de1b03fdc215d3f101dd23b9c570c45acd62796ba0ee14c2a'
+            '8133bc8eb16d0ed920e0bc21a605dd2f0604e68ce05c7bf20031ff1c3bab0f88')
+
+validpgpkeys=('0F334D8698881578F65D2AE55ED514A45BD5C938'  # Gerardo Exequiel Pozzi
+              '4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC') # Pierre Schmitz
+
+package() {
+    make -C "${pkgname}-${pkgver}" DESTDIR="${pkgdir}" install
+}
+
+prepare() {
+  cd "${pkgname}-${pkgver}"
+
+  local src
+  for src in "${source[@]}"; do
+    src="${src%%::*}"
+    src="${src##*/}"
+    [[ $src = *.patch ]] || continue
+    echo "Applying patch $src..."
+    patch -Np1 < "../$src"
+  done
+}
