@@ -1,0 +1,12 @@
+[Unit]
+Description=SystemRescue Initialization
+Before=sshd.service getty-pre.target
+Wants=getty-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/etc/systemd/scripts/sysrescue-initialize
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,88 @@
+run_hook() {
+    [[ "${findroot}" == "y" ]] || return
+
+    # Initialisation
+    local newroot="/new_root"
+    local rootdev=""
+    local rootcount=0
+    local menuchoices=""
+    modprobe -a -q dm-crypt >/dev/null 2>&1
+    echo "Searching for block devices ..."
+    sleep 2
+
+    # Prepare access to luks encrypted block devices
+    local cryptdev="$(blkid -t TYPE='crypto_LUKS' -o device)"
+    for curdev in ${cryptdev}
+    do
+        if cryptsetup isLuks ${curdev} >/dev/null 2>&1
+        then
+            echo "A passphrase is required to access device ${curdev}:"
+            local cryptname="${curdev##*/}"
+            local cryptargs=""
+            while ! eval cryptsetup open --type luks ${curdev} ${cryptname} ${cryptargs}
+            do
+                sleep 2;
+            done
+            if [ ! -e "/dev/mapper/${cryptname}" ]
+            then
+                err "Password succeeded but ${cryptname} creation failed, aborting..."
+                launch_interactive_shell --exec
+            fi
+            echo "Have successfully prepared access to encrypted device ${curdev}"
+        fi
+    done
+
+    # Show list of accessible block devices
+    echo "====================================================================="
+    lsblk --list --paths --output=name,size,fstype,label
+    echo "====================================================================="
+    sleep 5
+
+    # Attempt to find a filesystem which contains /sbin/init
+    local devlist=$(lsblk --list --noheadings --paths --output=name)
+    for curdev in ${devlist}
+    do
+        echo "Checking for ${init} on device ${curdev} ..."
+        if mount -r ${curdev} ${newroot} 2>/dev/null
+        then
+            if test -x ${newroot}/${init}
+            then
+                echo "Found ${init} on device ${curdev}"
+                rootcount=$((rootcount + 1))
+                menuchoices="${menuchoices} ${curdev} ${curdev}"
+            fi
+            umount ${newroot}
+        fi
+    done
+
+    # Fail if no root filesystem has been found
+    if [ ${rootcount} -eq 0 ]
+    then
+        err "Failed to find ${init} on any block device, cannot continue"
+        launch_interactive_shell --exec
+    fi
+
+    # Get the user to select the device from which to start
+    rootdev=$(whiptail --nocancel --title "Boot Linux OS from the disk" \
+                       --fb --menu "From which device do you want to boot ?" \
+                       --noitem 15 60 4 ${menuchoices} 3>&1 1>&2 2>&3)
+
+    # Make sure the choice is a valid block device
+    if ! lsblk --nodeps ${rootdev} >/dev/null 2>/dev/null
+    then
+        err "Choice ${rootdev} is not a valid block device"
+        launch_interactive_shell --exec
+    fi
+
+    read -p "Press enter to boot from ${rootdev}"
+
+    echo "Mounting device ${rootdev} ..."
+    if ! mount ${rootdev} ${newroot}
+    then
+        err "Failed to mount ${rootdev} in read-write mode"
+        launch_interactive_shell --exec
+    fi
+
+    rdlogger_stop
+    exec env -i "TERM=$TERM" /usr/bin/switch_root ${newroot} ${init} "$@"
+}

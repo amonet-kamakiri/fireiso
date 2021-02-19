@@ -1,0 +1,37 @@
+--- airootfs/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml	2021-02-18 17:51:28.818224217 +0100
++++ airootfs/root/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml	2021-02-18 11:12:30.331240484 +0100
+@@ -19,6 +19,7 @@
+         <value type="int" value="7"/>
+         <value type="int" value="8"/>
+         <value type="int" value="9"/>
++        <value type="int" value="10"/>
+       </property>
+       <property name="position-locked" type="bool" value="true"/>
+     </property>
+@@ -42,20 +43,17 @@
+         <value type="string" value="15552315973.desktop"/>
+       </property>
+     </property>
+-    <property name="plugin-5" type="string" value="launcher">
+-      <property name="items" type="array">
+-        <value type="string" value="15552316104.desktop"/>
+-      </property>
+-    </property>
+-    <property name="plugin-6" type="string" value="tasklist"/>
+-    <property name="plugin-7" type="string" value="separator">
++    <property name="plugin-5" type="string" value="tasklist"/>
++    <property name="plugin-6" type="string" value="separator">
+       <property name="expand" type="bool" value="true"/>
+     </property>
+-    <property name="plugin-8" type="string" value="systray">
++    <property name="plugin-7" type="string" value="systray">
+       <property name="names-visible" type="array">
+         <value type="string" value="networkmanager applet"/>
+       </property>
+     </property>
+-    <property name="plugin-9" type="string" value="clock"/>
++    <property name="plugin-8" type="string" value="xfce4-mount-plugin"/>
++    <property name="plugin-9" type="string" value="xkb"/>
++    <property name="plugin-10" type="string" value="clock"/>
+   </property>
+ </channel>

@@ -1,9 +1,9 @@
-#!/sbin/python3
+#!/usr/bin/python3
 # Distributed under the terms of the GNU General Public License v2
 # The original bash version of autorun was developed by Pierre Dorgueil in 2003
 # The current python implementation has been developed by Francois Dupoux in 2008
 # ----------------------- changeslog: -----------------------------------------
-# 2003-10-01: Pierre Dorgueil --> original bash version of autorun for sysresccd
+# 2003-10-01: Pierre Dorgueil --> original bash version of autorun for sysrescue
 # 2008-01-26: Francois Dupoux --> rewrote autorun in python to support http
 # 2008-01-27: Francois Dupoux --> added 'ar_ignorefail', 'ar_nodel', 'ar_disable'
 # 2017-05-30: Gernot Fink --> ported the script from python2 to python3
@@ -33,7 +33,7 @@ basedir='/var/autorun'
 autorunlog=basedir+'/log'
 autorunmnt=basedir+'/mnt'
 autoruntmp=basedir+'/tmp'
-defaultsrc=['/run/archiso/bootmnt','/var/autorun/cdrom','/root','/usr/share/sys.autorun']
+defaultsrc=['/run/archiso/bootmnt','/run/archiso/copytoram','/var/autorun/cdrom','/root','/usr/share/sys.autorun']
 ar_autoruns=['']+list('0123456789ABCDEF')
 cmdline=open('/proc/cmdline').read()
 autorunfiles=[]
@@ -120,7 +120,7 @@ def main():
                 sys.exit(0)
 
         # ---- parse the autorun sources ----
-        if re.match('^http://', ar_source):
+        if re.match('^https?://', ar_source):
                 search_autoruns(ar_source, ar_autoruns, copyfilefct_http)
         elif re.match('^/dev/', ar_source): # mount a partition/device
                 mnt1=('mount',ar_source,autorunmnt)

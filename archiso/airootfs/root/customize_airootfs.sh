@@ -9,15 +9,9 @@ ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
 cp -aT /etc/skel/ /root/
 
-rm -f /usr/lib/modules-load.d/pkcs8.conf
-
 # Permissions
-chmod 700 /root
-chown root:root /root -R
+chmod 750 /root
 chmod 755 /etc/systemd/scripts/*
-chown root:root /etc/systemd -R
-chown root:root /etc/modprobe.d -R
-chown root:root /etc/{fstab,hostname}
 
 # Configuration
 sed -i 's/#\(PermitRootLogin \).\+/\1yes\nAllowUsers root/' /etc/ssh/sshd_config
@@ -29,24 +23,68 @@ sed -i 's/#\(HandleSuspendKey=\)suspend/\1ignore/' /etc/systemd/logind.conf
 sed -i 's/#\(HandleHibernateKey=\)hibernate/\1ignore/' /etc/systemd/logind.conf
 sed -i 's/#\(HandleLidSwitch=\)suspend/\1ignore/' /etc/systemd/logind.conf
 
+# PulseAudio takes care of volume restore
+ln -sf /dev/null /etc/udev/rules.d/90-alsa-restore.rules
+
 # Services
-systemctl enable NetworkManager
+systemctl enable NetworkManager.service
+systemctl enable iptables.service
+systemctl enable ip6tables.service
 systemctl enable pacman-init.service
 systemctl enable choose-mirror.service
 systemctl enable sshd.service
-systemctl enable sysresccd-initialize.service
-systemctl enable sysresccd-autorun.service
-systemctl set-default multi-user.target
+systemctl enable sysrescue-initialize.service
+systemctl enable sysrescue-autorun.service
+systemctl enable qemu-guest-agent.service
+systemctl set-default graphical.target
+
+# Mask irrelevant timer units (#140)
+systemctl mask atop-rotate.timer
+systemctl mask shadow.timer
+systemctl mask man-db.timer
+systemctl mask updatedb.timer
+
+# Provide additional commands (using busybox instead of binutils to save space)
+ln -sf /usr/bin/busybox /usr/local/bin/ar
+ln -sf /usr/bin/busybox /usr/local/bin/strings
 
 # Cleanup
 find /usr/lib -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
+find /usr/lib -type f,l -name '*.a' -delete
+rm -rf /usr/lib/{libgo.*,libgphobos.*,libgfortran.*}
+rm -rf /usr/share/gtk-doc /usr/share/doc /usr/share/keepassxc/docs/*.pdf
+rm -rf /usr/share/keepassxc/translations
+rm -rf /usr/share/help/*/ghex/
+rm -rf /usr/share/gir*
+rm -rf /usr/include
+rm -rf /usr/share/man/man3
+
+# Cleanup XFCE menu
+sed -i '2 i NoDisplay=true' /usr/share/applications/{xfce4-mail-reader,xfce4-web-browser,jmacs,jpico,jstar}.desktop
+sed -i "s/^\(Categories=\).*\$/Categories=Utility;/" /usr/share/applications/{geany,joe,jmacs,jpico,jstar,ristretto,*GHex*}.desktop
+
+# Remove large/irrelevant firmwares
+rm -rf /usr/lib/firmware/{liquidio,netronome,mellanox,mrvl/prestera}
+
+# Remove extra locales
+if [ -x /usr/bin/localepurge ]
+then
+    echo -e "MANDELETE\nDONTBOTHERNEWLOCALE\nSHOWFREEDSPACE\nen\nen_US\nen_US.UTF-8" > /etc/locale.nopurge
+    /usr/bin/localepurge
+fi
 
 # Update pacman.conf
-sed -i -e '/# ==== BEGIN customrepos ====/,/# ==== END customrepos ====/d' /etc/pacman.conf
+sed -i -e '/# ==== BEGIN sysrescuerepo ====/,/# ==== END sysrescuerepo ====/d' /etc/pacman.conf
+
+# Check for issues with binaries
+/usr/bin/check-binaries.sh
 
 # Customizations
 /usr/bin/updatedb
 
 # Packages
 pacman -Q > /root/packages-list.txt
-pacman -Qi | egrep '^(Name|Installed)' | cut -f2 -d':' | paste - - | column -t | sort -nrk 2 | grep MiB > /root/packages-size.txt
+expac -H M -s "%-30n %m" | sort -rhk 2 > /root/packages-size.txt
+
+# Generate HTML version of the manual
+markdown -o usr/share/sysrescue/index.html usr/share/sysrescue/index.md

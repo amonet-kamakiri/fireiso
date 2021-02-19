@@ -21,7 +21,6 @@
         <value type="int" value="8"/>
         <value type="int" value="9"/>
         <value type="int" value="10"/>
-        <value type="int" value="12"/>
       </property>
       <property name="position-locked" type="bool" value="true"/>
     </property>
@@ -45,24 +44,32 @@
         <value type="string" value="15552315973.desktop"/>
       </property>
     </property>
-    <property name="plugin-5" type="string" value="tasklist"/>
-    <property name="plugin-6" type="string" value="separator">
+    <property name="plugin-5" type="string" value="launcher">
+      <property name="items" type="array">
+        <value type="string" value="15552316104.desktop"/>
+      </property>
+    </property>
+    <property name="plugin-11" type="string" value="launcher">
+      <property name="items" type="array">
+        <value type="string" value="15867834691.desktop"/>
+      </property>
+    </property>
+    <property name="plugin-6" type="string" value="tasklist"/>
+    <property name="plugin-7" type="string" value="separator">
       <property name="expand" type="bool" value="true"/>
       <property name="style" type="uint" value="0"/>
     </property>
-    <property name="plugin-7" type="string" value="pulseaudio">
+    <property name="plugin-8" type="string" value="pulseaudio">
       <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
     </property>
-    <property name="plugin-8" type="string" value="systray">
+    <property name="plugin-9" type="string" value="systray">
       <property name="show-frame" type="bool" value="false"/>
       <property name="size-max" type="uint" value="24"/>
       <property name="names-visible" type="array">
         <value type="string" value="networkmanager applet"/>
       </property>
     </property>
-    <property name="plugin-9" type="string" value="xfce4-mount-plugin"/>
-    <property name="plugin-10" type="string" value="xkb"/>
-    <property name="plugin-12" type="string" value="clock">
+    <property name="plugin-10" type="string" value="clock">
       <property name="digital-format" type="string" value="%T">
     </property>
   </property>
